@@ -1,1 +1,56 @@
 # GCIS Lite
+
+
+## Installation
+
+To install this project, you need to download the repo into your computer and then execute
+
+```BASH
+source build.sh
+```
+
+After this, you can use the BASH functions declared on `set_project_functions.sh`:
+
+- gcis-config: Build everything
+- gcis-main: Configure without tests
+- gcis-tests: Configure only tests
+- gcis-build: Build
+- gcis-test: Run tests
+- gcis-clean: Clean cmake
+- gcis-rebuild: clean + config + build
+
+You must execute `gcis-config` first and then build the project.
+
+Finally, you can use the file `./build/gcis_lite` to compress/decompress a file using one of the following two encoders:
+
+- Elias-Fano
+- Simple8b
+
+It is possible to add your own encoder but you will need to implement it with classes following the code's structure.
+
+## Compression
+
+To compress a file called `input.txt` and write the compressed content into another file called `output.txt` you can execute the following command:
+
+```BASH
+./build/gcis_lite -c input.txt output.txt <encoder>
+```
+
+Where `<encoder>` should be either `-ef` (Elias-Fano) or `-s8b` (Simple8b).
+
+## Decompression
+
+To decompress a file called `compressed.txt` and write the compressed content into another file called `decompressed.txt` you can execute the following command:
+
+```BASH
+./build/gcis_lite -d compressed.txt decompressed.txt <encoder>
+```
+
+Where `<encoder>` should be either `-ef` (Elias-Fano) or `-s8b` (Simple8b).
+
+## Benchmarking scripts
+
+Benchmarking scripts are provided as follows:
+
+- `download_pizzachilli.sh`: Downloads data from the repetitive corpus of Pizza Chilli repository ()
+

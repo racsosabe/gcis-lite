@@ -1,0 +1,40 @@
+//
+// Created by racso on 15/01/2026.
+//
+#pragma once
+#include <fstream>
+
+#define MALLOC_VARIABLE(var, _size, _type) (var = (_type*)malloc((_size) * sizeof(_type)))
+#define MALLOC_VARIABLE2(var1, var2, _size, _type) (var1 = var2 = (_type*)malloc((_size) * sizeof(_type)))
+#define SAIS_MYFREE(_ptr, _num, _type) free((_ptr))
+#define chr(_a) (cs == sizeof(sais_index_type) ? ((sais_index_type *)T)[(_a)] : ((unsigned char *)T)[(_a)])
+
+#ifndef UTILS_H
+#define UTILS_H
+
+#endif //UTILS_H
+
+inline void print_usage_message() {
+    std::cout << "Usage:" << std::endl;
+    std::cout << "  ./a.out <mode> <input file> <output filename> <encoder type>" << std::endl;
+}
+
+inline void load_string_from_file(char *&str, const char *filename, int &string_size) {
+    std::ifstream f(filename, std::ios::binary);
+    f.seekg(0, std::ios::end);
+    const std::streamsize n = f.tellg();
+    string_size = static_cast<int>(n);
+    f.seekg(0, std::ios::beg);
+
+    str = new char[n];
+    f.read(str, n);
+};
+
+template<typename string_type>
+bool check_printable(const string_type &s) {
+    for (auto x : s) {
+        if (static_cast<int>(x) < 32) return false;
+        if (static_cast<int>(x) > 126) return false;
+    }
+    return true;
+}

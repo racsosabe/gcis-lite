@@ -7,16 +7,14 @@
 #include "headers/eliasfano.h"
 #include "headers/gcis.h"
 #include "headers/utils.h"
-#include "headers/encoders.h"
 
 using timer = std::chrono::high_resolution_clock;
 
-using EncoderVariant = std::variant<S8B<32>, EliasFano<32>, Dummy>;
+using EncoderVariant = std::variant<S8B<32>, EliasFano<32>>;
 
 EncoderVariant make_encoder(const std::string& type) {
     if (type == "-s8b") return S8B<32>{};
-    if (type == "-ef")  return EliasFano<32>{};
-    return Dummy{};
+    return EliasFano<32>{};
 }
 
 int main(int argc, char* argv[]) {
@@ -33,8 +31,10 @@ int main(int argc, char* argv[]) {
         encoder.emplace<S8B<32>>();
     else if (encoder_type == "-ef")
         encoder.emplace<EliasFano<32>>();
-    else
-        encoder.emplace<Dummy>();
+    else {
+        std::cout << "Invalid encoder type" << std::endl;
+        assert(false);
+    }
 
     if (mode == "-d") {
         std::cerr << "Decompression." << std::endl;

@@ -1,5 +1,6 @@
 # GCIS Lite
 
+This project is a new implementation of the GCIS algorithm adapted from Yuta Mori's sais-lite. The main goal is to perform better than original GCIS in both time and memory. However, the compression ratio difers from the original one since this algorithm uses the LMS-substrings' lexnames strictly as proposed in SAIS algorithm, while GCIS doesn't take in consideration the last character of their definition. Therefore, the expected compression ratio for gcis-lite is worse than original GCIS.
 
 ## Installation
 

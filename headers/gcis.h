@@ -1,7 +1,18 @@
-//
-// Created by racso on 2/12/2025.
-//
-
+/*
+ * Portions of this file are derived from sais-lite.
+ *
+ * sais-lite:
+ * Copyright (c) 2008-2009 Yuta Mori
+ * Released under the MIT License.
+ *
+ * Modifications and integration:
+ * Copyright (C) 2026 Racso Galvan
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * This file is distributed as part of gcis-lite under
+ * the GNU General Public License v3 or later.
+ */
 
 #pragma once
 #include "grammar.h"

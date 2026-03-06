@@ -129,20 +129,36 @@ public:
         std::cout << std::endl;*/
         if (not g.empty()) {
             for (int64_t i = g.size() - 1; i >= 0; --i) {
-                std::cout << "Decompressing level " << i << std::endl;
+                //std::cout << "Decompressing level " << i << std::endl;
                 auto decompressed_encoder = std::move(g[i].decompress());
-                std::cout << "Decompressed level " << i << std::endl;
-                sdsl::int_vector<> new_r_string(g[i].get_string_size(), 0, sdsl::bits::hi(g[i].get_alphabet_size()) + 1);
-                uint64_t new_r_string_ptr = 0;
-                for (auto c : g[i].tail) {
-                    new_r_string[new_r_string_ptr++] = c;
+                //std::cout << "Decompressed level " << i << std::endl;
+                if (i == 0) {
+                    const uint64_t n = g[i].get_string_size();
+                    char *str = new char[n];
+                    uint64_t new_r_string_ptr = 0;
+                    for (auto c : g[i].tail) {
+                        str[new_r_string_ptr] = c;
+                        ++new_r_string_ptr;
+                    }
+                    for (auto c : r_string) {
+                        decompressed_encoder.extend_rule(c, str, new_r_string_ptr);
+                    }
+                    out.write(str, n);
                 }
-                for (auto c : r_string) {
-                    decompressed_encoder.extend_rule(c, new_r_string, new_r_string_ptr);
+                else {
+                    sdsl::int_vector<> new_r_string(g[i].get_string_size(), 0, sdsl::bits::hi(g[i].get_alphabet_size()) + 1);
+                    uint64_t new_r_string_ptr = 0;
+                    for (auto c : g[i].tail) {
+                        new_r_string[new_r_string_ptr] = c;
+                        ++new_r_string_ptr;
+                    }
+                    for (auto c : r_string) {
+                        decompressed_encoder.extend_rule(c, new_r_string, new_r_string_ptr);
+                    }
+                    r_string = std::move(new_r_string);
                 }
-                r_string = std::move(new_r_string);
                 //g[i].compute_new_level(r_string);
-                std::cout << "Done with level " << i << std::endl;
+                //std::cout << "Done with level " << i << std::endl;
                 /*std::cout << "New decompressed string: " << std::endl;
                 for (auto x : r_string) {
                     std::cout << static_cast<int>(x) << " ";
@@ -150,18 +166,20 @@ public:
                 std::cout << std::endl;*/
             }
         }
-        if (check_printable(r_string)) {
-            char *str = new char[r_string.size()];
-            for (uint64_t i = 0; i < r_string.size(); i++) {
-                str[i] = static_cast<char>(r_string[i]);
+        else {
+            //if (check_printable(r_string)) {
+            char *str = new char[final_reduced_string.size()];
+            for (uint64_t i = 0; i < final_reduced_string.size(); i++) {
+                str[i] = static_cast<char>(final_reduced_string[i]);
             }
-            out.write(str, static_cast<size_t>(r_string.size()));
+            out.write(str, final_reduced_string.size());
         }
+        /*}
         else {
             std::copy(r_string.begin(),
           r_string.end(),
           std::ostream_iterator<uint64_t>(out, " "));
-        }
+        }*/
     }
 
 };

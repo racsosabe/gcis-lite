@@ -6,3 +6,5 @@ fi
 ./external/sdsl-lite/install.sh .
 
 source set_project_functions.sh
+
+gcis-config

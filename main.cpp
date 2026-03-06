@@ -12,6 +12,8 @@ using timer = std::chrono::high_resolution_clock;
 
 using EncoderVariant = std::variant<S8B<32>, EliasFano<32>>;
 
+using sais_index_type = int;
+
 EncoderVariant make_encoder(const std::string& type) {
     if (type == "-s8b") return S8B<32>{};
     return EliasFano<32>{};
@@ -45,7 +47,7 @@ int main(int argc, char* argv[]) {
 
         std::visit([&]<typename Encoder>(Encoder& enc) {
 
-            GrammarInterface<int, Encoder> gi;
+            GrammarInterface<sais_index_type, Encoder> gi;
 
             gi.load(input);
 
@@ -77,7 +79,7 @@ int main(int argc, char* argv[]) {
 
         std::visit([&]<typename Encoder>(Encoder& enc) {
 
-            GrammarInterface<int, Encoder> gi;
+            GrammarInterface<sais_index_type, Encoder> gi;
 
             auto start = timer::now();
 
@@ -101,6 +103,39 @@ int main(int argc, char* argv[]) {
         }, encoder_variant);
         delete[] SA;
         delete[] str;
+    }
+    else if (mode == "-e") {
+        std::cerr << "Extract substring. (WIP)" << std::endl;
+
+        /*std::ifstream input(argv[2], std::ios::binary);
+        std::ifstream queries_file(argv[3], std::ios::binary);
+        EncoderVariant encoder_variant = make_encoder(encoder_type);
+
+        std::visit([&]<typename Encoder>(Encoder& enc) {
+
+            GrammarInterface<sais_index_type, Encoder> gi;
+
+            gi.load(input);
+
+            std::vector<std::pair<sais_index_type, sais_index_type>> queries;
+
+            read_queries(queries_file, queries);
+
+            auto start = timer::now();
+
+            gi.extract_batch(queries);
+
+            auto stop = timer::now();
+
+            std::cout << "Time: "
+                  << static_cast<double>(
+                         std::chrono::duration_cast<std::chrono::seconds>(stop - start).count()
+                     )
+                  << " seconds\n";
+        }, encoder_variant);
+
+        input.close();
+        output.close();*/
     }
     else if (mode == "-s") {
         std::cerr << "Suffix array construction. (WIP)" << std::endl;

@@ -57,16 +57,16 @@ public:
     ~Simple8bDecompressedLevel() = default;
 
     template<typename string_type>
-    void extend_rule(uint64_t rule_num, string_type &r_string, uint64_t &l) {
+    void extend_rule(const uint64_t rule_num, string_type &r_string, uint64_t &l) {
         uint64_t rule_start = rule_pos[rule_num];
-        uint64_t rule_length = rule_pos[rule_num + 1] - rule_pos[rule_num];
-        for (uint64_t i = 0; i < rule_length; ++i) {
-            r_string[l++] = rule[rule_start + i];
+        uint64_t rule_bound = rule_pos[rule_num + 1];
+        for (; rule_start < rule_bound; ++rule_start, ++l) {
+            r_string[l] = rule[rule_start];
         }
     }
 
     sdsl::int_vector<> rule;
-    sdsl::int_vector<> rule_pos;
+    std::vector<unsigned int> rule_pos;
 };
 
 template<uint64_t BUF_SIZE = 4800>
@@ -434,37 +434,31 @@ public:
     Simple8bDecompressedLevel decompress() {
         Simple8bDecompressedLevel decompressed;
         uint64_t number_of_rules = rule_suffix_length.size();
-        uint64_t total_lcp_length = 0;
-        uint64_t total_rule_suffix_length = 0;
+        decompressed.rule_pos.resize(number_of_rules + 1);
+        uint64_t total_length = 0;
         // Compute the total LCP length
         lcp.reset();
         rule_suffix_length.reset();
-        for (uint64_t i = 0; i < lcp.size(); ++i) {
-            uint64_t x = lcp.get_next();
-            total_lcp_length += x;
-        }
-        // Compute the total rule suffix length and the number of rules
-        for (uint64_t i = 0; i < rule_suffix_length.size(); ++i) {
-            total_rule_suffix_length += rule_suffix_length.get_next();
+        for (uint64_t i = 0; i < number_of_rules; ++i) {
+            uint64_t cur_length = lcp.get_next() + rule_suffix_length.get_next();
+            total_length += cur_length;
+            decompressed.rule_pos[i] = cur_length;
         }
 
         // Resize data structures
-        uint64_t total_length = total_lcp_length + total_rule_suffix_length;
+
         decompressed.rule.width(sdsl::bits::hi(alphabet_size - 1) + 1);
         decompressed.rule.resize(total_length);
-        decompressed.rule_pos.resize(number_of_rules + 1);
+
         uint64_t rule_start = 0;
         uint64_t prev_rule_start = 0;
         uint64_t start = 0;
         lcp.reset();
-        rule_suffix_length.reset();
 
         for (uint64_t i = 0; i < number_of_rules; ++i) {
 
             uint64_t lcp_length = lcp.get_next();
-            uint64_t rule_length = rule_suffix_length.get_next();
-
-            total_length = lcp_length + rule_length;
+            total_length = decompressed.rule_pos[i];
 
             // Copy the contents of the previous rule by LCP length chars
             uint64_t j = 0;

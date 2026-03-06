@@ -105,7 +105,7 @@ LMSpostproc1(const char_type *T, sais_index_type *SA,
   /* store the length of all substrings */
   i = n - 1; j = n - 1; c0 = chr(n - 1);
   do { c1 = c0; } while((0 <= --i) && ((c0 = chr(i)) >= c1));
-  while(0 <= i) {
+  for ( ; 0 <= i; ) {
     do { c1 = c0; } while((0 <= --i) && ((c0 = chr(i)) <= c1));
     if(0 <= i) {
       SA[m + ((i + 1) >> 1)] = j - i; j = i + 1;
@@ -280,7 +280,7 @@ gcis_main(const char_type *T, sais_index_type *SA,
   std::fill(SA, SA + n, 0);
   b = &t; i = n - 1; j = n; m = 0; c0 = chr(n - 1);
   do { c1 = c0; } while((0 <= --i) && ((c0 = chr(i)) >= c1));
-  while(0 <= i) {
+  for(; 0 <= i;) {
     do { c1 = c0; } while((0 <= --i) && ((c0 = chr(i)) <= c1));
     if(0 <= i) {
       *b = j; b = SA + --B[c1]; j = i; ++m;

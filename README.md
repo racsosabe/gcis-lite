@@ -21,7 +21,7 @@ After this, you can use the BASH functions declared on `set_project_functions.sh
 - gcis-rebuild: clean + config + build
 - measure: Reports the time and memory usage of a command.
 
-You must execute `gcis-config` to build the complete project.
+The `build.sh` script will execute `gcis-config` to build the complete project.
 
 Finally, you can use the file `./build/gcis_lite` to compress/decompress a file using one of the following two encoders:
 
@@ -54,6 +54,6 @@ Where `<encoder>` should be either `-ef` (Elias-Fano) or `-s8b` (Simple8b).
 
 Benchmarking scripts are provided as follows:
 
-- `download_pizzachilli.sh`: Downloads data from Pizza & Chilli repetitive corpus.
-- `test_compression.sh`: Tests compression on Pizza & Chilli downloaded data.
-- `test_decompression.sh`: Tests decompression on Pizza & Chilli downloaded data.
+- `download_pizzachilli.sh {-real|-pseudo-real|-logs|-artificial|-all}`: Downloads data from Pizza & Chilli repetitive corpus.
+- `test_compression.sh {-real|-artificial|-logs|-pseudo-real|-all} {-ef|-s8b|-all}`: Tests compression on Pizza & Chilli downloaded data.
+- `test_decompression.sh {-real|-artificial|-logs|-pseudo-real|-all} {-ef|-s8b|-all}`: Tests decompression on Pizza & Chilli downloaded data.

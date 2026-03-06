@@ -33,16 +33,16 @@ public:
     ~EliasFanoDecompressedLevel() = default;
 
     template<typename string_type>
-    void extend_rule(uint64_t rule_num, string_type &r_string, uint64_t &l) {
+    void extend_rule(const uint64_t rule_num, string_type &r_string, uint64_t &l) {
         uint64_t rule_start = rule_pos[rule_num];
-        uint64_t rule_length = rule_pos[rule_num + 1] - rule_pos[rule_num];
-        for (uint64_t i = 0; i < rule_length; ++i) {
-            r_string[l++] = rule[rule_start + i];
+        uint64_t rule_bound = rule_pos[rule_num + 1];
+        for (; rule_start < rule_bound; ++rule_start, ++l) {
+            r_string[l] = rule[rule_start];
         }
     }
 
     sdsl::int_vector<> rule;
-    sdsl::int_vector<> rule_pos;
+    std::vector<unsigned int> rule_pos;
 };
 
 class EliasFanoCodec {
@@ -112,9 +112,9 @@ public:
         m_sel.set_vector(&sdv);
     }
 
-    [[nodiscard]] uint64_t count() const {
+    [[nodiscard]] unsigned int count() const {
         uint64_t total = 0;
-        for (const auto x : sdv) {
+        for (const auto &x : sdv) {
             total += static_cast<int>(x);
         }
         return total;
@@ -161,7 +161,8 @@ public:
         sais_index_type m,
         sais_index_type names,
         int cs,
-        bool is_last_level = false, EliasFano* prev_level = nullptr) {
+        bool is_last_level = false,
+        EliasFano* prev_level = nullptr) {
 
         sdsl::int_vector<> lms_lengths(names, 0, sdsl::bits::hi(n) + 1);
         sdsl::int_vector<> lms_start(names, 0, sdsl::bits::hi(n) + 1);
@@ -169,8 +170,6 @@ public:
         sais_index_type i, j, p, plen;
         sais_index_type head_section_size;
         sais_index_type c0, c1;
-
-
 
         head_section_size = *std::min_element(SA, SA + m);
         sais_index_type lms_position = m - 1;
@@ -185,7 +184,6 @@ public:
                 c0 = c1;
             }
             plen = j - i - (j + 1 < n);
-            //std::cout << i + 1 << " " << j << std::endl;
             lms_lengths[RA[lms_position]] = plen;
             lms_start[RA[lms_position]] = i + 1;
             j = i + 1;
@@ -196,9 +194,6 @@ public:
 
         sdsl::bit_vector lcp;
         sdsl::bit_vector rule_delim;
-
-        //std::cout << "Starting new level of Elias-Fano" << std::endl;
-        //std::cout << "Names: " << names << std::endl;*/
 
         sais_index_type final_rule_length = 0;
         sais_index_type final_lcp_length = 0;
@@ -223,14 +218,8 @@ public:
             final_rule_length += cur_len - cur_lcp;
             final_lcp_length += cur_lcp + 1;
             final_rule_delim_length += cur_len - cur_lcp + 1;
-            /*std::cout << p << ": ";
-            for (j = 0; j < cur_len; ++j) {
-                std::cout << static_cast<int>(chr(lms_start[p] + j)) << " ";
-            }
-            std::cout << std::endl;*/
         }
 
-        //std::cout << "Computed final lengths" << std::endl;
         lcp.resize(final_lcp_length);
         rule_delim.resize(final_rule_delim_length);
         this -> rule.resize(final_rule_length);
@@ -255,10 +244,8 @@ public:
                     ++cur_lcp;
                 }
             }
-            //std::cout << p << " " << cur_lcp << std::endl;
-            if (p % MOD == 0) cur_lcp = 0;
 
-            //std::cout << "Resized lcp and rule_delim" << std::endl;
+            if (p % MOD == 0) cur_lcp = 0;
 
             if (cur_lcp > 0) {
                 std::fill_n(lcp.begin() + final_lcp_length, cur_lcp, false);
@@ -276,15 +263,11 @@ public:
             rule_delim[final_rule_delim_length] = true;
             ++final_rule_delim_length;
 
-            //std::cout << "Filled lcp and rule_delim" << std::endl;
-
             i = lms_start[p] + cur_lcp;
             for (j = cur_lcp; j < cur_len; ++j, ++i) {
                 this -> rule[final_rule_length] = chr(i);
                 ++final_rule_length;
             }
-
-            //std::cout << "Extended rule" << std::endl;
 
             // Insert the fully decode rule length
             if (prev_level == nullptr) {
@@ -302,40 +285,17 @@ public:
                 }
                 fdrlen[p] = sum;
             }
-            //std::cout << "Assigned fdrlen for rule " << p << std::endl;
         }
         sdsl::util::clear(lms_start);
         sdsl::util::clear(lms_lengths);
-        //std::cout << "Computed lcps for compression" << std::endl;
-        //std::cout << "Generated rules" << std::endl;
-
-        //std::cout << fdrlen.size() << std::endl;
-
-        //std::cout << "Finished added rules" << std::endl;
-
-        //std::cout << "Bit compressing rules" << std::endl;
 
         sdsl::util::bit_compress(this -> rule);
-        //std::cout << "Compressed rules" << std::endl;
         this -> lcp.encode(lcp);
-        //std::cout << "Encoded lcp" << std::endl;
         this -> rule_suffix_length.encode(rule_delim);
-        //std::cout << "Encoded rule_delim" << std::endl;
         this -> fully_decoded_rule_len = sdsl::dac_vector_dp<>(fdrlen);
-        //std::cout << "Fully decoded rule lengths" << std::endl;
         sdsl::util::clear(fdrlen);
-
-
-        //std::cout << lcp.size() << std::endl;
-        //std::cout << rule_delim.size() << std::endl;
         sdsl::util::clear(lcp);
-        //std::cout << "Cleared lcp" << std::endl;
         sdsl::util::clear(rule_delim);
-        //std::cout << "Cleared rule delim" << std::endl;
-
-        //std::cout << "Cleared lcp and rule_delim" << std::endl;
-
-        //std::cout << "Compressing the tail" << std::endl;
 
         this -> tail.resize(head_section_size);
         for (i = 0; i < head_section_size; ++i) {
@@ -344,7 +304,6 @@ public:
         // Compress the tail
         sdsl::util::bit_compress(this -> tail);
         // Determine the accumulated tail length
-        //std::cout << "Bit compressed tail" << std::endl;
         if (prev_level != nullptr) {
             this -> fully_decoded_tail_len =
                 prev_level -> fully_decoded_tail_len;
@@ -357,27 +316,17 @@ public:
         }
         this -> string_size = n;
         this -> alphabet_size = k;
-        //std::cout << "Computed everything about the tail" << std::endl;
         if (is_last_level) {
-            //std::cout << "Bit compressed reduced string" << std::endl;
-            //std::cout << reduced_string.size() << std::endl;
             this -> partial_sum.resize(m);
-            //std::cout << this -> partial_sum.size() << std::endl;
             if (not this -> partial_sum.empty()) {
                 this -> partial_sum[0] = 0;
             }
-            //std::cout << "Starting partial sums" << std::endl;
-            //std::cout << this -> fully_decoded_rule_len.size() << std::endl;
             for (i = 1; i < m; ++i) {
-                //std::cout << i << ": ";
-                //std::cout << static_cast<int>(reduced_string[i - 1]) << " ";
                 this -> partial_sum[i] =
                     this -> partial_sum[i - 1] +
                     this -> fully_decoded_rule_len[RA[i - 1]];
             }
-            //std::cout << std::endl;
         }
-        //std::cout << "Finished this level" << std::endl;*/
     }
 
     [[nodiscard]] uint64_t size_in_bytes() const {
@@ -424,30 +373,28 @@ public:
 
     EliasFanoDecompressedLevel decompress() {
         EliasFanoDecompressedLevel decompressed;
-        uint64_t number_of_rules = this -> rule_suffix_length.count();
-        uint64_t total_lcp_length = 0;
-        uint64_t total_rule_suffix_length = 0;
+        uint64_t number_of_rules = rule_suffix_length.count();
+        decompressed.rule_pos.resize(number_of_rules + 1);
+        uint64_t total_length = 0;
         // Compute the total LCP length
         for (uint64_t i = 0; i < number_of_rules; ++i) {
-            total_lcp_length += lcp[i];
-        }
-        // Compute the total rule suffix length and the number of rules
-        for (uint64_t i = 0; i < number_of_rules; ++i) {
-            total_rule_suffix_length += rule_suffix_length[i];
+            uint64_t cur_length = lcp[i] + rule_suffix_length[i];
+            total_length += cur_length;
+            decompressed.rule_pos[i] = cur_length;
         }
 
         // Resize data structures
-        uint64_t total_length = total_lcp_length + total_rule_suffix_length;
+
         decompressed.rule.resize(total_length);
-        decompressed.rule_pos.resize(number_of_rules + 1);
+        decompressed.rule.width(sdsl::bits::hi(alphabet_size - 1) + 1);
+
         uint64_t rule_start = 0;
         uint64_t prev_rule_start = 0;
         uint64_t start = 0;
 
         for (uint64_t i = 0; i < number_of_rules; ++i) {
             uint64_t lcp_length = lcp[i];
-            uint64_t rule_length = rule_suffix_length[i];
-            total_length = lcp_length + rule_length;
+            total_length = decompressed.rule_pos[i];
 
             // Copy the contents of the previous rule by LCP length chars
             uint64_t j = 0;
